@@ -9,6 +9,8 @@ var life=3, lifeImg_3, lifeImg_2, lifeImg_1, lifeImge_0,lifeObj
 var power, powerImg
 var stone1,stone2,stone3,stone4, stoneImg1, stoneImg2, stoneImg3, stoneImg4
 var score=0;
+var coinGrp, stoneGrp
+var coinScore=0
 
 //var PLAY, SERVE, END
 var gameState="serve"
@@ -40,58 +42,53 @@ forestImg=loadImage("images/background-img.jpg")
 }
 function setup(){
 createCanvas(displayWidth,displayHeight)
-forest=createSprite(displayWidth/2,displayHeight/2,displayWidth,displayHeight)
-forest.addImage(forestImg)
+//forest=createSprite(displayWidth/2,displayHeight/2,displayWidth,displayHeight)
+//forest.addImage(forestImg)
 
  girl=createSprite(displayWidth/2,displayHeight-200,20,20)
  //lifeObj=createSprite(displayWidth-100,displayHeight-500, 50,10)
  //lifeObj.addImage(lifeImg_1)
 //girl.addImage(girlImg)
 girl.addAnimation("still", girlStill)
-//girl.addAnimation("running", girlRunningImg)
+girl.addAnimation("running", girlRunningImg)
 girl.scale=1
 
-forest.scale=2
+//forest.scale=2
 
-//girl.addAnimation("runningRight", girlRunningRightImg)
-//girl.addAnimation("runningLeft", girlRunningLeftImg)
+girl.addAnimation("runningRight", girlRunningRightImg)
+girl.addAnimation("runningLeft", girlRunningLeftImg)
 
-
+coinGrp= new Group()
+stoneGrp= new Group()
+girl.setCollider("circle",0,0,35)
 }
 
 function draw(){
-    background(0)
-    drawSprites(); 
+    background(forestImg)
+   
    
     textSize(30)
     strokeWeight(3)
     fill("red")
     text("Score: "+score, displayWidth-150,50)
     text("Lives: "+life,  displayWidth-150,75)
+    text("Coins: "+coinScore,  displayWidth-150,100)
 
  if(gameState==="serve")
    {
    
-       text("CLICK HERE TO BEGIN", displayWidth/2-120, displayHeight/2-100 )
-     // girl.visible=false;
-    // coin.visible=false;
-      //stone.visible=false;
-
-      forest.x=displayWidth/2
-      forest.y=displayHeight/2
-      //coin.velocityY=0
-      //stone.velocityY=0
-      
-    // power.visible=false;
+       text("PRESS SPACE TO BEGIN", displayWidth/2-120, displayHeight/2-100 )
      
     }
     else if(gameState==="end")
     {
-      forest.x=displayWidth/2
-      forest.y=displayHeight/2
-     // coin.velocityY=0
-      //stone.velocityY=0
+      text("GAME OVER", displayWidth/2-120, displayHeight/2-100 )
+      text("PRESS 'r' TO RESTART", displayWidth/2-150, displayHeight/2-50 )
+      girl.changeAnimation("still")
+      girl.velocityY=0
+    
     }
+
     
    else
     {
@@ -100,9 +97,34 @@ function draw(){
 
    }
 
+drawSprites();
 
-   
+if(keyDown("space"))
+{
+  if(gameState==="end")
+  {
+  gameState="play"
+  }
 }
+
+if(keyDown("r"))
+{
+  restart();
+}
+}
+function restart()
+{
+  gameState="play"
+  girl.changeAnimation("still")
+  girl.x=displayWidth/2
+  girl.y=displayHeight-200
+  stoneGrp.destroyEach();
+  coinGrp.destroyEach();
+  score=0
+  life=3
+  coinScore=0
+}
+
 
 function spawnCoins()
     {
@@ -112,7 +134,10 @@ function spawnCoins()
       coin.addAnimation("coinImg",coinImg)
       
       coin.scale=0.1
-      coin.lifetime=150;
+      coin.lifetime=300;
+     coin.depth=girl.depth
+      girl.depth+=1
+      coinGrp.add(coin)
       
         }
     }
@@ -138,7 +163,10 @@ function spawnCoins()
      
       
       stone.scale=0.3
-      stone.lifetime=150;
+      stone.lifetime=300;
+      stone.depth=girl.depth
+      girl.depth+=1
+      stoneGrp.add(stone)
       
       
         }
@@ -161,15 +189,25 @@ function spawnCoins()
 function gamePlay()
 {
   score = score + Math.round(getFrameRate()/60);
-  if(forest.y < 0 ){
-      forest.y =height/2;
-    }
+  girl.changeAnimation("running")
+  spawnCoins();
+  spawnStones()
+   
+ // if(forest.y < 0 ){
+   //   forest.y =height/2;
+    //}
     if(score<=300)
     {
       girl.velocityY=-0.2
     }
+    if(life<=0)
+    {
+      gameState="end"
+    }
 
      //girl.visible=true;
+     
+     
   if(keyDown(RIGHT_ARROW))
   {
       girl.changeAnimation("runningRight",girlRunningRightImg)
@@ -181,8 +219,6 @@ function gamePlay()
       girl.x-=10
   }
 
-  spawnCoins();
-  spawnStones()
-  drawSprites();  
+  
 }
 
